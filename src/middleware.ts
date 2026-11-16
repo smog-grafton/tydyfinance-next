@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { publicEnvironment, serverEnvironment } from '@/lib/environment'
 
-const sessionCookie = process.env.LARAVEL_SESSION_COOKIE ?? 'tydyfinance-session'
+const sessionCookie = serverEnvironment.sessionCookie
 const activeAdminRoutes = new Set(['/dashboard/analytics', '/finance/overview', '/finance/setup', '/operations/fleet'])
-const laravelUrl = process.env.NEXT_PUBLIC_LARAVEL_URL ?? 'http://localhost:8000'
+const laravelUrl = publicEnvironment.apiUrl
 const quickRoutes = new Map([
   ['quick-income', 'income'],
   ['quick-expense', 'expense'],
@@ -10,15 +11,20 @@ const quickRoutes = new Map([
   ['quick-remittance', 'remittance'],
 ])
 
-const isActiveAdminRoute = (pathname: string): boolean => activeAdminRoutes.has(pathname)
-  || /^\/operations\/fleet\/\d+$/.test(pathname)
-  || /^\/operations\/drivers(?:\/\d+)?$/.test(pathname)
-  || /^\/planning\/(overview|cash-runway|acquisitions|acquisition-simulations|forecast-scenarios|budgets|obligations|due-events|reserves|cash-availability|alerts)$/.test(pathname)
-  || /^\/recruitment\/(operations|academy-evaluations|academy-templates|home-visits)$/.test(pathname)
-  || /^\/recruitment\/applicants(?:\/(?:new|\d+))?$/.test(pathname)
-  || /^\/management\/(reconciliations|imports|audit-trail)$/.test(pathname)
-  || pathname === '/settings/quick-access'
-  || /^\/fleet-finance\/(overview|acquire-vehicle|loan-repayments|loan-safety|loan-funding|lenders|vehicles|vehicle-faults|paid-maintenance|maintenance-plans|fleet-profitability|remittances)$/.test(pathname)
+const isActiveAdminRoute = (pathname: string): boolean =>
+  activeAdminRoutes.has(pathname) ||
+  /^\/operations\/fleet\/\d+$/.test(pathname) ||
+  /^\/operations\/drivers(?:\/\d+)?$/.test(pathname) ||
+  /^\/planning\/(overview|cash-runway|acquisitions|acquisition-simulations|forecast-scenarios|budgets|obligations|due-events|reserves|cash-availability|alerts)$/.test(
+    pathname,
+  ) ||
+  /^\/recruitment\/(operations|academy-evaluations|academy-templates|home-visits)$/.test(pathname) ||
+  /^\/recruitment\/applicants(?:\/(?:new|\d+))?$/.test(pathname) ||
+  /^\/management\/(reconciliations|imports|audit-trail)$/.test(pathname) ||
+  pathname === '/settings/quick-access' ||
+  /^\/fleet-finance\/(overview|acquire-vehicle|loan-repayments|loan-safety|loan-funding|lenders|vehicles|vehicle-faults|paid-maintenance|maintenance-plans|fleet-profitability|remittances)$/.test(
+    pathname,
+  )
 
 const loginRedirect = (request: NextRequest): NextResponse => {
   const loginUrl = new URL('/auth/login', request.url)

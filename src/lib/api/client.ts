@@ -1,8 +1,23 @@
 'use client'
 
-import type { ApiEnvelope, ApiValidationErrors, AuthenticatedUser, FinanceSetupData, FleetVehicleDetailData, FleetVehicleManageData, OperationalNotification, OperationalNotificationPage, QuickAccessContext, QuickAccessCredential, QuickAccessOperation, QuickDriverSearchResult, QuickRemittanceContext } from './types'
+import type {
+  ApiEnvelope,
+  ApiValidationErrors,
+  AuthenticatedUser,
+  FinanceSetupData,
+  FleetVehicleDetailData,
+  FleetVehicleManageData,
+  OperationalNotification,
+  OperationalNotificationPage,
+  QuickAccessContext,
+  QuickAccessCredential,
+  QuickAccessOperation,
+  QuickDriverSearchResult,
+  QuickRemittanceContext,
+} from './types'
+import { publicEnvironment } from '@/lib/environment'
 
-const laravelUrl = process.env.NEXT_PUBLIC_LARAVEL_URL ?? 'http://localhost:8000'
+const laravelUrl = publicEnvironment.apiUrl
 
 export class ApiError extends Error {
   constructor(
@@ -109,16 +124,27 @@ export const getQuickAccessContext = async (operation: QuickAccessOperation): Pr
 }
 
 export const recordQuickIncome = async (input: Record<string, unknown>, idempotencyKey: string) =>
-  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; reference: string | null; occurred_at: string; account: string }>>('/api/v1/quick-access/income', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) })
+  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; reference: string | null; occurred_at: string; account: string }>>(
+    '/api/v1/quick-access/income',
+    { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) },
+  )
 
 export const recordQuickExpense = async (input: Record<string, unknown>, idempotencyKey: string) =>
-  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; reference: string | null; occurred_at: string; account: string }>>('/api/v1/quick-access/expense', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) })
+  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; reference: string | null; occurred_at: string; account: string }>>(
+    '/api/v1/quick-access/expense',
+    { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) },
+  )
 
 export const recordQuickLoanPayment = async (input: Record<string, unknown>, idempotencyKey: string) =>
-  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; status: string; agreement: string; account: string }>>('/api/v1/quick-access/loan-payment', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) })
+  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; status: string; agreement: string; account: string }>>(
+    '/api/v1/quick-access/loan-payment',
+    { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) },
+  )
 
 export const searchQuickRemittanceDrivers = async (query: string): Promise<QuickDriverSearchResult[]> => {
-  const response = await quickAccessRequest<ApiEnvelope<QuickDriverSearchResult[]>>(`/api/v1/quick-access/remittance/drivers?query=${encodeURIComponent(query)}`)
+  const response = await quickAccessRequest<ApiEnvelope<QuickDriverSearchResult[]>>(
+    `/api/v1/quick-access/remittance/drivers?query=${encodeURIComponent(query)}`,
+  )
   return response.data
 }
 
@@ -128,7 +154,10 @@ export const getQuickRemittanceContext = async (contractId: number): Promise<Qui
 }
 
 export const recordQuickRemittance = async (input: Record<string, unknown>, idempotencyKey: string) =>
-  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; status: string; driver: string; contract: string; account: string }>>('/api/v1/quick-access/remittance', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) })
+  quickAccessRequest<ApiEnvelope<{ id: number; amount: number; status: string; driver: string; contract: string; account: string }>>(
+    '/api/v1/quick-access/remittance',
+    { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input) },
+  )
 
 export const getQuickAccessCredentials = async (): Promise<QuickAccessCredential[]> => {
   const response = await laravelRequest<ApiEnvelope<QuickAccessCredential[]>>('/api/v1/settings/quick-access')
@@ -141,12 +170,17 @@ export const getFinanceSetupForClient = async (): Promise<FinanceSetupData> => {
 }
 
 export const createQuickAccessCredential = async (input: Record<string, unknown>): Promise<QuickAccessCredential> => {
-  const response = await laravelRequest<ApiEnvelope<QuickAccessCredential>>('/api/v1/settings/quick-access', { method: 'POST', body: JSON.stringify(input) })
+  const response = await laravelRequest<ApiEnvelope<QuickAccessCredential>>('/api/v1/settings/quick-access', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
   return response.data
 }
 
 export const rotateQuickAccessCredential = async (credentialId: number): Promise<QuickAccessCredential> => {
-  const response = await laravelRequest<ApiEnvelope<QuickAccessCredential>>(`/api/v1/settings/quick-access/${credentialId}/rotate`, { method: 'POST' })
+  const response = await laravelRequest<ApiEnvelope<QuickAccessCredential>>(`/api/v1/settings/quick-access/${credentialId}/rotate`, {
+    method: 'POST',
+  })
   return response.data
 }
 
@@ -169,11 +203,13 @@ export const logout = async (): Promise<void> => {
   await laravelRequest<undefined>('/api/v1/auth/logout', { method: 'POST' })
 }
 
-export const getOperationalNotifications = async (input: {
-  status?: 'all' | 'unread' | 'read' | 'dismissed'
-  category?: 'planning' | 'finance' | 'operations'
-  perPage?: number
-} = {}): Promise<OperationalNotificationPage> => {
+export const getOperationalNotifications = async (
+  input: {
+    status?: 'all' | 'unread' | 'read' | 'dismissed'
+    category?: 'planning' | 'finance' | 'operations'
+    perPage?: number
+  } = {},
+): Promise<OperationalNotificationPage> => {
   const search = new URLSearchParams()
   if (input.status) search.set('status', input.status)
   if (input.category) search.set('category', input.category)

@@ -1,6 +1,24 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Tydy Finance Next
 
-## Getting Started
+## Environment configuration
+
+Copy the committed template to a local-only file before starting the app:
+
+```bash
+cp .env.example .env.local
+```
+
+`.env.local` is intentionally ignored by Git. It is the one place to set deployment-specific URLs and any future private values. The currently supported settings are:
+
+| Variable                  | Purpose                                                 |
+| ------------------------- | ------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`     | Browser origin for the Next application.                |
+| `NEXT_PUBLIC_LARAVEL_URL` | Laravel API origin used by browser and server requests. |
+| `LARAVEL_SESSION_COOKIE`  | Laravel session-cookie name used by middleware.         |
+
+Public values are read centrally from `src/lib/environment.ts`; avoid reading `process.env` directly elsewhere.
+
+## Getting started
 
 First, run the development server:
 

@@ -1,6 +1,8 @@
 import { headers } from 'next/headers'
 import { cache } from 'react'
 
+import { publicEnvironment } from '@/lib/environment'
+
 import type {
   ApiEnvelope,
   AuthenticatedUser,
@@ -18,8 +20,8 @@ import type {
   DriverOperationsDriverDetail,
 } from './types'
 
-const laravelUrl = process.env.NEXT_PUBLIC_LARAVEL_URL ?? 'http://localhost:8000'
-const nextUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const laravelUrl = publicEnvironment.apiUrl
+const nextUrl = publicEnvironment.appUrl
 
 const laravelServerRequest = async <T>(path: string): Promise<Response> => {
   const requestHeaders = headers()
