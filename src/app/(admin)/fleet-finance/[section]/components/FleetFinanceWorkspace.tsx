@@ -170,7 +170,18 @@ const FleetFinanceWorkspace = ({ workspace, section, title }: Props) => {
     workspace.ledger_accounts
       .filter((item) => (!entityId || item.entity_id === Number(entityId)) && (!kind || item.account_type === kind))
       .map((item) => ({ value: String(item.id), label: `${item.code} · ${item.name}` }))
-  const set = (name: string, value: string) => setForm((current) => ({ ...current, [name]: value }))
+  const set = (name: string, value: string) =>
+    setForm((current) => {
+      const next = { ...current, [name]: value }
+      if (name === 'driver_contract_id') {
+        const contract = workspace.driver_contracts.find((item) => String(item.id) === value)
+        const eligibleAccounts = workspace.financial_accounts.filter((account) => account.entity_id === contract?.entity_id)
+        next.financial_account_id = eligibleAccounts.some((account) => String(account.id) === current.financial_account_id)
+          ? current.financial_account_id
+          : String(eligibleAccounts[0]?.id ?? '')
+      }
+      return next
+    })
   const open = (kind: ModalKind, values: FormValues = {}, id: number | null = null) => {
     setModal(kind)
     setForm(values)
@@ -187,6 +198,7 @@ const FleetFinanceWorkspace = ({ workspace, section, title }: Props) => {
   const currentAgreement = workspace.agreements.find((item) => String(item.id) === form.finance_agreement_id)
   const currentPlan = workspace.acquisition_plans.find((item) => String(item.id) === form.plan_id)
   const currentVehicle = workspace.vehicles.find((item) => String(item.id) === form.vehicle_id)
+  const currentContract = workspace.driver_contracts.find((item) => String(item.id) === form.driver_contract_id)
 
   const command = async (path: string, method: 'POST' | 'PATCH' | 'DELETE', input?: Record<string, unknown>, needsKey = false) => {
     setSaving(true)
@@ -815,7 +827,7 @@ const FleetFinanceWorkspace = ({ workspace, section, title }: Props) => {
           </Col>
           <Col md={6}>
             <Form.Label>Receipt account</Form.Label>
-            {select('financial_account_id', accountsFor(''), 'Search cash account')}
+            {select('financial_account_id', accountsFor(currentContract ? String(currentContract.entity_id) : ''), 'Search cash account')}
           </Col>
           <Col md={6}>{input('amount', 'Received amount (UGX)', 'number', true)}</Col>
           <Col md={6}>{input('received_at', 'Received at', 'datetime-local', true)}</Col>

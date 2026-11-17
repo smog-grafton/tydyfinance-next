@@ -37,11 +37,24 @@ const QuickRemittanceEntry = () => {
     setSelectedDriver(driver)
     setDriverContext(null)
     if (!driver) return
-    try { const data = await getQuickRemittanceContext(driver.id); setDriverContext(data); setForm((current) => ({ ...current, amount: current.amount || String(data.today_due || data.expected_remittance) })) } catch (caught) { setError(requestError(caught)) }
+    try {
+      const data = await getQuickRemittanceContext(driver.id)
+      const receiptAccounts = (context?.accounts ?? []).filter((account) => account.entity_id === data.entity_id)
+      setDriverContext(data)
+      setForm((current) => ({
+        ...current,
+        account: receiptAccounts.some((account) => String(account.id) === current.account) ? current.account : String(receiptAccounts[0]?.id ?? ''),
+        amount: current.amount || String(data.today_due || data.expected_remittance),
+      }))
+      if (!receiptAccounts.length) setError('No active receipt account is configured for this driver contract. Add one to its operating entity, then reopen this link.')
+    } catch (caught) { setError(requestError(caught)) }
   }
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!selectedDriver) return
+    if (!selectedDriver || !accounts.some((account) => account.value === form.account)) {
+      setError('Choose an active receipt account for this driver contract.')
+      return
+    }
     setSaving(true); setError(null)
     try { const result = await recordQuickRemittance({ driver_contract_id: selectedDriver.id, financial_account_id: Number(form.account), amount: Number(form.amount), received_at: form.receivedAt, reference: form.reference || undefined }, crypto.randomUUID()); setComplete(result.data) } catch (caught) { setError(requestError(caught)) } finally { setSaving(false) }
   }
@@ -56,7 +69,7 @@ const QuickRemittanceEntry = () => {
       <Form.Group className="mb-3"><Form.Label>Received on</Form.Label><Form.Control type="date" required value={form.receivedAt} onChange={(event) => setForm({ ...form, receivedAt: event.target.value })} /></Form.Group>
       <Form.Group className="mb-4"><Form.Label>Payment reference <span className="text-muted">(optional)</span></Form.Label><Form.Control value={form.reference} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Mobile-money or receipt reference" /></Form.Group>
       <Alert variant="info" className="small">Tydy posts the cash once, allocates due remittances oldest-first, then runs any approved vehicle-loan reserve policy. A reserve allocation is not another income or lender payment.</Alert>
-      <Button type="submit" size="lg" className="w-100" disabled={saving || !selectedDriver || !driverContext || !form.account || !form.amount}>{saving ? 'Recording…' : 'Record remittance'}</Button>
+      <Button type="submit" size="lg" className="w-100" disabled={saving || !selectedDriver || !driverContext || !accounts.some((account) => account.value === form.account) || !form.amount}>{saving ? 'Recording…' : 'Record remittance'}</Button>
     </Form>}
   </QuickShell>
 }
