@@ -40,6 +40,18 @@ const secureQuickResponse = (response: NextResponse): NextResponse => {
   return response
 }
 
+// Node exposes each Set-Cookie header through getSetCookie(). The Edge
+// runtime may expose a combined header instead; split only at the beginning
+// of the next cookie so the comma in an Expires attribute remains intact.
+const exchangeCookies = (headers: Headers): string[] => {
+  const cookieHeaders = headers as Headers & { getSetCookie?: () => string[] }
+  const values = cookieHeaders.getSetCookie?.()
+  if (values?.length) return values
+
+  const combined = headers.get('set-cookie')
+  return combined ? combined.split(/,(?=\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+=)/) : []
+}
+
 const exchangeQuickLink = async (request: NextRequest, route: string, operation: string, token: string): Promise<NextResponse> => {
   const exchange = await fetch(new URL(`/api/v1/quick-access/exchange/${operation}/${encodeURIComponent(token)}`, laravelUrl), {
     headers: { Accept: 'application/json', 'User-Agent': request.headers.get('user-agent') ?? 'Tydy Quick Access' },
@@ -53,9 +65,7 @@ const exchangeQuickLink = async (request: NextRequest, route: string, operation:
     return secureQuickResponse(NextResponse.redirect(cleanUrl))
   }
 
-  const cookieHeaders = exchange.headers as Headers & { getSetCookie?: () => string[] }
-  const cookies = cookieHeaders.getSetCookie?.() ?? (exchange.headers.get('set-cookie') ? [exchange.headers.get('set-cookie') as string] : [])
-  cookies.forEach((cookie) => response.headers.append('set-cookie', cookie))
+  exchangeCookies(exchange.headers).forEach((cookie) => response.headers.append('set-cookie', cookie))
 
   return response
 }
