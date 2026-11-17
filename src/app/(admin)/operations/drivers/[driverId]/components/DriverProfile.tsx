@@ -3,8 +3,8 @@
 import { ApiError, fleetFinanceCommand } from '@/lib/api/client'
 import type { DriverOperationsDriverDetail } from '@/lib/api/types'
 import { formatKampalaDate, formatUGX } from '@/lib/formatters'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Alert, Badge, Button, Card, CardBody, CardHeader, CardTitle, Col, Form, Modal, Row, Tab, Table, Tabs } from 'react-bootstrap'
 
 const label = (value: string | null | undefined) => value ? value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) : '—'
@@ -16,11 +16,16 @@ const Metric = ({ title, amount, tone = 'dark' }: { title: string; amount: numbe
 
 const DriverProfile = ({ profile }: { profile: DriverOperationsDriverDetail }) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [showPayment, setShowPayment] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({ financial_account_id: '', amount: String(profile.remittance.today_due || profile.remittance.remittance_owed || ''), received_at: '', reference: '' })
   const set = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }))
+
+  useEffect(() => {
+    if (profile.collection.allowed && searchParams.get('record') === 'remittance') setShowPayment(true)
+  }, [profile.collection.allowed, searchParams])
 
   const collect = async (event: React.FormEvent) => {
     event.preventDefault()

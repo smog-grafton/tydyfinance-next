@@ -1051,6 +1051,18 @@ export type FleetOperationsWorkspaceData = {
   }>
 }
 
+export type FleetOperationsTable = 'vehicles' | 'assignments' | 'handovers' | 'contracts' | 'remittances'
+
+export type FleetOperationsTablePage = {
+  items: Array<Record<string, string | number | null>>
+  meta: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
 export type FleetVehicleDetailData = {
   vehicle: {
     id: number

@@ -95,6 +95,9 @@ const FleetOperationsWorkspace = ({ workspace, selectedEntityId = '', canManage 
           <p className="mb-0 text-muted">Current vehicles, custody, maintenance, faults and remittance obligations from Tydy operational records.</p>
         </Col>
         <Col lg="auto" className="mt-3 mt-lg-0">
+          <div className="d-flex flex-wrap gap-2 justify-content-lg-end mb-2">
+            <Link className="btn btn-light btn-sm" href="/operations/fleet/register">Open operations register</Link>
+          </div>
           <Form onSubmit={applyFilters} className="d-flex flex-wrap gap-2 justify-content-lg-end">
             <Form.Select aria-label="Fleet entity" value={entityId} onChange={(event) => setEntityId(event.target.value)} style={{ minWidth: 180 }}>
               <option value="">All active entities</option>

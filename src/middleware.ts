@@ -13,7 +13,7 @@ const quickRoutes = new Map([
 
 const isActiveAdminRoute = (pathname: string): boolean =>
   activeAdminRoutes.has(pathname) ||
-  /^\/operations\/fleet\/\d+$/.test(pathname) ||
+  /^\/operations\/fleet(?:\/\d+|\/register)?$/.test(pathname) ||
   /^\/operations\/drivers(?:\/\d+)?$/.test(pathname) ||
   /^\/planning\/(overview|cash-runway|acquisitions|acquisition-simulations|forecast-scenarios|budgets|obligations|due-events|reserves|cash-availability|alerts)$/.test(
     pathname,

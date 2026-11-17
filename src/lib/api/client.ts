@@ -7,6 +7,8 @@ import type {
   FinanceSetupData,
   FleetVehicleDetailData,
   FleetVehicleManageData,
+  FleetOperationsTable,
+  FleetOperationsTablePage,
   OperationalNotification,
   OperationalNotificationPage,
   QuickAccessContext,
@@ -167,6 +169,20 @@ export const getQuickAccessCredentials = async (): Promise<QuickAccessCredential
 export const getFinanceSetupForClient = async (): Promise<FinanceSetupData> => {
   const response = await laravelRequest<ApiEnvelope<FinanceSetupData>>('/api/v1/finance/setup')
   return response.data
+}
+
+export const getFleetOperationsTable = async (
+  table: FleetOperationsTable,
+  filters: Record<string, string | number | undefined>,
+): Promise<FleetOperationsTablePage> => {
+  const search = new URLSearchParams()
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') search.set(key, String(value))
+  })
+
+  return laravelRequest<{ data: FleetOperationsTablePage }>(`/api/v1/fleet/workspace/${table}${search.size ? `?${search.toString()}` : ''}`).then(
+    (response) => response.data,
+  )
 }
 
 export const createQuickAccessCredential = async (input: Record<string, unknown>): Promise<QuickAccessCredential> => {
